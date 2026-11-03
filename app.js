@@ -5,8 +5,34 @@ const input=document.querySelector("#accessions"),output=document.querySelector(
 const parseInput=()=>input.value.split(/\r?\n/).map(x=>x.trim().toUpperCase()).filter(Boolean);
 function setStatus(message,kind=""){statusBox.textContent=message;statusBox.className=`status ${kind}`.trim()}
 function chunks(a,n){const r=[];for(let i=0;i<a.length;i+=n)r.push(a.slice(i,i+n));return r}
-async function fetchBatch(accessions,field){const query=accessions.map(x=>`${field}=\"${x}\"`).join(" OR ");const params=new URLSearchParams({result:"read_run",query:`(${query})`,fields:`${field},run_accession`,format:"json",limit:"0"});const response=await fetch(`${API_URL}?${params}`,{headers:{Accept:"application/json"}});if(!response.ok)throw new Error(`ENA API returned HTTP ${response.status}.`);const data=await response.json();if(!Array.isArray(data))throw new Error("ENA returned an unexpected response.");return data.map(row=>({input:String(row[field]||"").toUpperCase(),run:String(row.run_accession||"").toUpperCase()}))}
-async function fetchType(accessions,field,label){const records=[],sets=chunks([...new Set(accessions)],BATCH_SIZE);for(let i=0;i<sets.length;i++){setStatus(`Querying ENA, ${label} batch ${i+1} of ${sets.length}…`);records.push(...await fetchBatch(sets[i],field))}return records}
+async function fetchAccession(accession) {
+  const params = new URLSearchParams({
+    accession,
+    result: "read_run",
+    fields: "run_accession",
+    format: "json"
+  });
+  const response = await fetch(`${API_URL.replace("/search", "/filereport")}?${params}`, {
+    headers: { Accept: "application/json" }
+  });
+  if (!response.ok) throw new Error(`ENA API returned HTTP ${response.status} for ${accession}.`);
+  const data = await response.json();
+  if (!Array.isArray(data)) throw new Error(`ENA returned an unexpected response for ${accession}.`);
+  return data.map(row => String(row.run_accession || "").toUpperCase()).filter(Boolean);
+}
+
+async function fetchType(accessions, field, label) {
+  const records = [];
+  const unique = [...new Set(accessions)];
+  for (let i = 0; i < unique.length; i++) {
+    const accession = unique[i];
+    setStatus(`Querying ENA, ${label} ${i + 1} of ${unique.length}: ${accession}…`);
+    const runs = await fetchAccession(accession);
+    records.push(...runs.map(run => ({ input: accession, run })));
+  }
+  return records;
+}
+
 async function convert(){const all=parseInput(),invalid=all.filter(x=>!ACCESSION_RE.test(x));if(!all.length)return setStatus("Paste at least one experiment or BioSample accession.","error");if(invalid.length)return setStatus(`Invalid accession${invalid.length>1?"s":""}: ${invalid.slice(0,5).join(", ")}${invalid.length>5?"…":""}`,"error");convertButton.disabled=true;copyButton.disabled=true;downloadButton.disabled=true;output.value="";try{const records=[],exps=all.filter(x=>EXPERIMENT_RE.test(x)),samples=all.filter(x=>BIOSAMPLE_RE.test(x));if(exps.length)records.push(...await fetchType(exps,"experiment_accession","experiment"));if(samples.length)records.push(...await fetchType(samples,"secondary_sample_accession","BioSample"));const lookup=new Map();for(const row of records){if(!row.input||!row.run)continue;if(!lookup.has(row.input))lookup.set(row.input,new Set());lookup.get(row.input).add(row.run)}lastPairs=all.map(accession=>({accession,type:BIOSAMPLE_RE.test(accession)?"BioSample":"Experiment",runs:lookup.has(accession)?[...lookup.get(accession)].sort().join(", "):"-"}));output.value=lastPairs.map(x=>x.runs).join("\n");resultCount.textContent=`${lastPairs.length} results`;copyButton.disabled=false;downloadButton.disabled=false;const missing=lastPairs.filter(x=>x.runs==="-").length;setStatus(`Done. ${lastPairs.length-missing} found; ${missing} not found.`,"success")}catch(error){console.error(error);setStatus(`${error.message} Check your connection and try again.`,"error")}finally{convertButton.disabled=false}}
 async function copyResults(){try{await navigator.clipboard.writeText(output.value)}catch{output.select();document.execCommand("copy")}setStatus("Results copied to the clipboard.","success")}
 function downloadTsv(){const rows=["input_accession\taccession_type\trun_accession",...lastPairs.map(x=>`${x.accession}\t${x.type}\t${x.runs}`)],blob=new Blob([rows.join("\n")+"\n"],{type:"text/tab-separated-values;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="ena_accession_to_run.tsv";a.click();URL.revokeObjectURL(url)}
