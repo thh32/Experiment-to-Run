@@ -1,58 +1,7 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Convert ENA experiment accessions to run accessions using the official ENA Portal API.">
-  <title>ENA Experiment to Run Converter</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main class="shell">
-    <header>
-      <p class="eyebrow">European Nucleotide Archive utility</p>
-      <h1>Experiment to run accession converter</h1>
-      <p class="intro">Paste one ENA experiment accession per line. Results are returned in the same order. If an experiment has multiple runs, they are comma-separated; if none is found, a dash is shown.</p>
-    </header>
-
-    <section class="converter" aria-label="Accession converter">
-      <div class="field">
-        <div class="field-heading">
-          <label for="experiments">Experiment accessions</label>
-          <span id="input-count">0 valid</span>
-        </div>
-        <textarea id="experiments" spellcheck="false" placeholder="ERX8831546&#10;SRX123456&#10;DRX123456" aria-describedby="input-help"></textarea>
-        <p id="input-help" class="help">Accepted prefixes: ERX, SRX and DRX. Blank lines are ignored.</p>
-      </div>
-
-      <div class="field">
-        <div class="field-heading">
-          <label for="runs">Run accessions</label>
-          <span id="result-count">0 results</span>
-        </div>
-        <textarea id="runs" readonly placeholder="ERR9289904&#10;-&#10;DRR123456"></textarea>
-        <p class="help">Output line n corresponds to valid input line n.</p>
-      </div>
-    </section>
-
-    <div class="actions">
-      <button id="convert" class="primary" type="button">Convert accessions</button>
-      <button id="copy" type="button" disabled>Copy results</button>
-      <button id="download" type="button" disabled>Download TSV</button>
-      <button id="clear" type="button">Clear</button>
-    </div>
-
-    <div id="status" class="status" role="status" aria-live="polite">Ready.</div>
-
-    <details>
-      <summary>How it works</summary>
-      <p>This page sends accession queries directly to the official ENA Portal API. It does not scrape ENA web pages and does not send data to this website's owner.</p>
-    </details>
-
-    <footer>
-      <p>Uses the public <a href="https://www.ebi.ac.uk/ena/portal/api/" target="_blank" rel="noopener noreferrer">ENA Portal API</a>. Not affiliated with EMBL-EBI.</p>
-    </footer>
-  </main>
-  <script src="app.js" defer></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Convert ENA experiment and BioSample accessions to run accessions."><title>ENA Accession to Run Converter</title><link rel="stylesheet" href="styles.css"></head>
+<body><main class="shell"><header><p class="eyebrow">European Nucleotide Archive utility</p><h1>Experiment or BioSample to run converter</h1><p class="intro">Paste one experiment or BioSample accession per line. Results remain in the same order. Multiple runs are comma-separated; if none is found, a dash is shown.</p></header>
+<section class="converter" aria-label="ENA accession converter"><div class="field"><div class="field-heading"><label for="accessions">Experiment or BioSample accessions</label><span id="input-count">0 valid</span></div><textarea id="accessions" spellcheck="false" placeholder="ERX8831546&#10;SAMN28925470&#10;SAMEA1234567" aria-describedby="input-help"></textarea><p id="input-help" class="help">Experiments: ERX, SRX, DRX. BioSamples: SAMN, SAMEA, SAMD. Blank lines are ignored.</p></div>
+<div class="field"><div class="field-heading"><label for="runs">Run accessions</label><span id="result-count">0 results</span></div><textarea id="runs" readonly placeholder="ERR9289904&#10;SRR12345678, SRR12345679&#10;-"></textarea><p class="help">Output line n corresponds to valid input line n.</p></div></section>
+<div class="actions"><button id="convert" class="primary" type="button">Convert accessions</button><button id="copy" type="button" disabled>Copy results</button><button id="download" type="button" disabled>Download TSV</button><button id="clear" type="button">Clear</button></div><div id="status" class="status" role="status" aria-live="polite">Ready.</div>
+<details><summary>How it works</summary><p>The page queries the official ENA Portal API directly. Experiment and BioSample inputs are queried separately and then restored to the original mixed input order. It does not scrape ENA web pages.</p></details><footer><p>Uses the public ENA Portal API. Not affiliated with EMBL-EBI.</p></footer></main><script src="app.js" defer></script></body></html>
