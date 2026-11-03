@@ -1,6 +1,6 @@
-# ENA Experiment to Run Converter
+# Experiment/Bioproject to Run Converter
 
-A GitHub Page that converts NCBI/ENA experiment accessions, such as `ERX8831546`, to their associated run accessions, such as `ERR9289904`.
+A GitHub Page that converts NCBI/ENA experiment accessions, such as `ERX8831546`, and bioproject accessions, to their associated run accessions, such as `ERR9289904`.
 
 The site uses the official ENA Portal API.
 
